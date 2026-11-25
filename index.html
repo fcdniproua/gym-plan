@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Наші тренування</title>
+<style>
+:root{
+  --bg:#f6f5f2; --card:#ffffff; --ink:#1b1d22; --muted:#6b6f78; --line:#e4e2dc;
+  --accent:#e2572b; --accent-soft:#fde9e1; --ok:#1f9d63; --ok-soft:#dcf3e8;
+  --her:#b0417e; --her-soft:#f8e3ef;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1115; --card:#181b21; --ink:#eceef2; --muted:#9097a3; --line:#2a2e37;
+    --accent:#ff7a4d; --accent-soft:#3a2219; --ok:#3ccf8a; --ok-soft:#173326;
+    --her:#ef7fbd; --her-soft:#3a1d2d;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body.her{--accent:var(--her);--accent-soft:var(--her-soft)}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px calc(40px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 12px}
+h1{font-size:20px;margin:0}
+.week{font-size:13px;color:var(--muted);text-align:right}
+.week b{color:var(--ink)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;
+  padding:10px 4px;border-radius:10px;cursor:pointer;position:relative}
+.seg button.on{background:var(--accent);color:#fff}
+.seg button .tick{font-size:12px;margin-left:4px}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 14px}
+.progress i{display:block;height:100%;background:var(--ok);width:0;transition:width .25s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0;padding:12px 14px 4px}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-top:1px solid var(--line)}
+.card h2+.item{border-top:0}
+.item.done .name{text-decoration:line-through;color:var(--muted)}
+.body{flex:1;min-width:0}
+.name{font-weight:600}
+.meta{font-size:14px;color:var(--muted);margin-top:2px}
+.plan{font-size:14px;margin-top:4px;padding:6px 8px;background:var(--accent-soft);border-radius:8px}
+.sets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.dot{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:none;color:var(--muted);
+  font:inherit;font-weight:700;cursor:pointer;display:grid;place-items:center}
+.dot.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.chk{flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:none;cursor:pointer;
+  display:grid;place-items:center;color:#fff;font-size:18px;margin-top:1px}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.wt{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);margin-left:auto}
+.wt input{width:64px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);
+  font:inherit;text-align:center}
+.note{font-size:14px;color:var(--muted);padding:4px 2px 12px}
+.note b{color:var(--ink)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tools button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;
+  padding:10px;border-radius:10px;cursor:pointer}
+.alldone{display:none;text-align:center;padding:14px;border-radius:14px;background:var(--ok-soft);color:var(--ok);
+  font-weight:700;margin-bottom:10px}
+.alldone.show{display:block}
+details{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px}
+summary{cursor:pointer;padding:10px 0;font-weight:600}
+details ul{margin:0 0 12px;padding-left:18px;font-size:14px;color:var(--muted)}
+details li{margin:4px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Тренування</h1>
+    <div class="week" id="weekInfo"></div>
+  </header>
+
+  <div class="seg" id="who">
+    <button data-p="me">🏃 Я</button>
+    <button data-p="her">🚴 Дружина</button>
+  </div>
+  <div class="seg" id="days">
+    <button data-d="tue">Вт</button>
+    <button data-d="thu">Чт</button>
+    <button data-d="sat">Сб</button>
+  </div>
+
+  <div class="progress"><i id="bar"></i></div>
+  <div class="alldone" id="alldone">🎉 Тренування виконано!</div>
+  <div id="content"></div>
+
+  <div class="tools">
+    <button id="prevW">− тиждень програми</button>
+    <button id="nextW">+ тиждень програми</button>
+    <button id="reset">Скинути день</button>
+  </div>
+
+  <details>
+    <summary>Правила</summary>
+    <ul>
+      <li>Вагу підбирайте так, щоб останні 2–3 повторення були важкими. Якщо всі підходи легко на верхній межі — наступного разу +1 плитка.</li>
+      <li>Відпочинок між підходами 60–90 с.</li>
+      <li>Біль у суглобі — стоп. Втома м'язів — норма.</li>
+      <li>Біг: довга пробіжка — спокійно, щоб можна було говорити. Інтервали — важко, але останній відрізок у тому ж темпі.</li>
+      <li>За тиждень додавати не більше 10% часу <i>або</i> 0,5 км/год швидкості. Нахил доріжки 1%.</li>
+      <li>Велотренажер рівномірно — темп, на якому можна говорити з легкою задишкою.</li>
+      <li>Галочки скидаються щопонеділка автоматично, вага запам'ятовується.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+// ---------- План ----------
+// stage: 0 = тижні 1–2, 1 = тижні 3–4, 2 = тиждень 5+
+const STAGE_NAMES = ['тижні 1–2', 'тижні 3–4', 'тиждень 5+'];
+
+const PLAN = {
+  me: {
+    tue: { title: 'Груди + трицепс + біг', blocks: [
+      { h: 'Розминка', items: [
+        { id: 'm_tue_wu', name: 'Гребля Concept2 легко', meta: '5 хв + махи руками' } ] },
+      { h: 'Силова', items: [
+        { id: 'm_chest_press', name: 'Жим від грудей сидячи', meta: 'Мультитренажер · 3 × 10–12', sets: 3, w: true },
+        { id: 'm_fly', name: 'Метелик (зведення рук)', meta: 'Decathlon · 3 × 12', sets: 3, w: true },
+        { id: 'm_pushup', name: 'Віджимання від підлоги', meta: '3 × макс (запас 1–2)', sets: 3 },
+        { id: 'm_tri', name: 'Розгинання на трицепс', meta: 'Верхній блок · 3 × 12', sets: 3, w: true },
+        { id: 'm_knees', name: 'Підйом колін у висі', meta: 'Шведська стінка · 3 × 8–12', sets: 3 } ] },
+      { h: 'Біг · інтервали', items: [
+        { id: 'm_tue_run', name: 'Інтервали на доріжці', plan: [
+          '5 хв на 7 → <b>2 хв на 10 / 2 хв на 7 × 4</b> → 3 хв на 6',
+          '5 хв на 7 → <b>3 хв на 10 / 2 хв на 7 × 4</b> → 3 хв на 6',
+          '5 хв на 7 → <b>4 хв на 10,5 / 2 хв на 7 × 4</b> → 3 хв на 6' ] } ] },
+      { h: 'Заминка', items: [
+        { id: 'm_tue_cd', name: 'Розтяжка', meta: '5 хв' } ] } ] },
+
+    thu: { title: 'Спина + біцепс + гребля', blocks: [
+      { h: 'Розминка', items: [
+        { id: 'm_thu_wu', name: 'Доріжка, ходьба з нахилом', meta: '5 хв' } ] },
+      { h: 'Силова', items: [
+        { id: 'm_pulldown', name: 'Верхня тяга до грудей', meta: 'Верхній блок · 3 × 10–12', sets: 3, w: true },
+        { id: 'm_row', name: 'Тяга нижнього блоку сидячи', meta: 'Нижній блок · 3 × 12', sets: 3, w: true },
+        { id: 'm_bi', name: 'Згинання на біцепс', meta: 'Нижній блок · 3 × 12', sets: 3, w: true },
+        { id: 'm_superman', name: '«Супермен» на підлозі', meta: '3 × 12–15', sets: 3 },
+        { id: 'm_plank', name: 'Планка', meta: '3 × 30–45 с', sets: 3 } ] },
+      { h: 'Кардіо', items: [
+        { id: 'm_thu_row', name: 'Гребля інтервали', meta: 'Concept2', plan: [
+          '<b>6 × (1 хв активно + 1 хв легко)</b>',
+          '<b>8 × (1 хв активно + 1 хв легко)</b>',
+          '<b>6 × (2 хв активно + 1 хв легко)</b>' ] } ] },
+      { h: 'Заминка', items: [
+        { id: 'm_thu_cd', name: 'Розтяжка', meta: '5 хв' } ] } ] },
+
+    sat: { title: 'Ноги, плечі, все тіло + довгий біг', blocks: [
+      { h: 'Розминка', items: [
+        { id: 'm_sat_wu', name: 'Гребля Concept2 легко', meta: '5 хв' } ] },
+      { h: 'Силова', items: [
+        { id: 'm_legpress', name: 'Жим ногами', meta: 'Платформа · 3 × 12', sets: 3, w: true },
+        { id: 'm_legext', name: 'Розгинання ніг', meta: 'Мультитренажер · 2 × 15', sets: 2, w: true },
+        { id: 'm_cg_press', name: 'Жим від грудей вузьким хватом', meta: '3 × 10', sets: 3, w: true },
+        { id: 'm_rev_pd', name: 'Верхня тяга зворотним хватом', meta: '3 × 10', sets: 3, w: true },
+        { id: 'm_upright', name: 'Тяга до підборіддя', meta: 'Нижній блок · 3 × 12', sets: 3, w: true } ] },
+      { h: 'Біг · довгий спокійний', items: [
+        { id: 'm_sat_run', name: 'Довга пробіжка', plan: [
+          '<b>30 хв</b>: 10 хв на 7, потім 20 хв на 8',
+          '<b>35 хв</b> на 8, останні 3 хв на 10',
+          '<b>40 хв</b> на 8–8,5 (≈ 5 км)' ] } ] },
+      { h: 'Заминка', items: [
+        { id: 'm_sat_cd', name: 'Розтяжка', meta: '5 хв' } ] } ] },
+  },
+
+  her: (() => {
+    const circuit = [
+      { id: 'h_legpress', name: 'Жим ногами', meta: 'Платформа · 15', w: true },
+      { id: 'h_pulldown', name: 'Верхня тяга', meta: 'Мультитренажер · 15', w: true },
+      { id: 'h_legext', name: 'Розгинання ніг', meta: 'Мультитренажер · 15', w: true },
+      { id: 'h_press', name: 'Жим від грудей', meta: 'Мультитренажер · 12–15', w: true },
+      { id: 'h_squat', name: 'Присідання з фітболом біля стіни', meta: '12–15' },
+      { id: 'h_plank', name: 'Планка (з колін або повна)', meta: '20–30 с' },
+    ];
+    const day = (key, cardioName, cardioMeta, plans) => ({ blocks: [
+      { h: 'Розминка', items: [
+        { id: `h_${key}_wu`, name: 'Велотренажер легко', meta: '5 хв' } ] },
+      { h: 'Силове коло', circuit: true, items: circuit,
+        note: 'Вправи одна за одною без пауз, після кола — 2 хв відпочинку.' },
+      { h: 'Кардіо', items: [
+        { id: `h_${key}_cardio`, name: cardioName, meta: cardioMeta, plan: plans } ] },
+      { h: 'Заминка', items: [
+        { id: `h_${key}_cd`, name: 'Розтяжка', meta: '5 хв' } ] } ] });
+    return {
+      tue: { title: 'Коло + велотренажер рівномірно', ...day('tue', 'Велотренажер рівномірно', 'Середній темп, можна говорити',
+        ['<b>20 хв</b>', '<b>30 хв</b>', '<b>40 хв</b>']) },
+      thu: { title: 'Коло + велотренажер інтервали', ...day('thu', 'Велотренажер інтервали', '1 хв швидко / 2 хв легко',
+        ['<b>6 повторів</b> (18 хв)', '<b>8 повторів</b> (24 хв)', '<b>10 повторів</b> (30 хв)']) },
+      sat: { title: 'Коло + змішане кардіо', ...day('sat', 'Вело + еліпс або доріжка з нахилом 5–8%', '15 хв вело, решта — еліпс/доріжка',
+        ['<b>25 хв</b> разом', '<b>30 хв</b> разом', '<b>40 хв</b> разом']) },
+    };
+  })(),
+};
+
+// ---------- Сховище ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+// ---------- Дати ----------
+const DAY_MS = 864e5;
+function mondayOf(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const thisMonday = mondayOf(new Date());
+const weekKey = ymd(thisMonday);
+
+let start = store.get('startMonday', null);
+if (!start) { start = weekKey; store.set('startMonday', start); }
+
+function programWeek() {
+  const [y, m, d] = start.split('-').map(Number);
+  return Math.max(1, Math.round((thisMonday - new Date(y, m - 1, d)) / (7 * DAY_MS)) + 1);
+}
+const stageOf = w => (w <= 2 ? 0 : w <= 4 ? 1 : 2);
+
+// ---------- Стан ----------
+const todayDay = (() => {
+  const g = new Date().getDay(); // 0 нд .. 6 сб
+  if (g <= 2) return 'tue';
+  if (g <= 4) return 'thu';
+  return 'sat';
+})();
+let person = store.get('person', 'me');
+let day = todayDay;
+
+const ck = (p, d) => `chk:${p}:${weekKey}:${d}`;
+const getChecks = (p, d) => store.get(ck(p, d), {});
+const wKey = id => `w:${id}`;
+
+// скільки "клітинок" потрібно для дня та скільки відмічено
+function dayCount(p, d) {
+  const chk = getChecks(p, d), stage = stageOf(programWeek());
+  let total = 0, done = 0;
+  for (const b of PLAN[p][d].blocks) {
+    if (b.circuit) {
+      const rounds = stage === 0 ? 2 : 3;
+      for (let r = 0; r < rounds; r++) { total++; if (chk[`round${r}`]) done++; }
+    } else {
+      for (const it of b.items) {
+        const n = it.sets || 1;
+        for (let s = 0; s < n; s++) { total++; if (chk[`${it.id}:${s}`]) done++; }
+      }
+    }
+  }
+  return { total, done };
+}
+
+// ---------- Рендер ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function render() {
+  document.body.classList.toggle('her', person === 'her');
+  const w = programWeek(), stage = stageOf(w);
+  $('#weekInfo').innerHTML = `Тиждень <b>${w}</b><br>${STAGE_NAMES[stage]}`;
+
+  document.querySelectorAll('#who button').forEach(b => b.classList.toggle('on', b.dataset.p === person));
+  document.querySelectorAll('#days button').forEach(b => {
+    const d = b.dataset.d, c = dayCount(person, d);
+    b.classList.toggle('on', d === day);
+    b.innerHTML = `${{ tue: 'Вт', thu: 'Чт', sat: 'Сб' }[d]}${c.done === c.total ? '<span class="tick">✓</span>' : ''}`;
+  });
+
+  const plan = PLAN[person][day], chk = getChecks(person, day);
+  let html = `<div class="note"><b>${esc(plan.title)}</b></div>`;
+
+  for (const b of plan.blocks) {
+    html += `<div class="card"><h2>${esc(b.h)}</h2>`;
+    if (b.circuit) {
+      const rounds = stage === 0 ? 2 : 3;
+      html += b.items.map(it => `
+        <div class="item"><div class="body">
+          <div class="name">${esc(it.name)}</div><div class="meta">${esc(it.meta)}</div>
+        </div>${it.w ? weightInput(it.id) : ''}</div>`).join('');
+      html += `<div class="item"><div class="body">
+          <div class="name">Кола (${rounds})</div><div class="meta">${esc(b.note)}</div>
+          <div class="sets">${Array.from({ length: rounds }, (_, r) =>
+            `<button class="dot ${chk[`round${r}`] ? 'on' : ''}" data-k="round${r}">${r + 1}</button>`).join('')}</div>
+        </div></div>`;
+    } else {
+      for (const it of b.items) {
+        const planText = it.plan ? `<div class="plan">${it.plan[stage]}</div>` : '';
+        if (it.sets) {
+          const all = Array.from({ length: it.sets }, (_, s) => chk[`${it.id}:${s}`]).every(Boolean);
+          html += `<div class="item ${all ? 'done' : ''}"><div class="body">
+              <div class="name">${esc(it.name)}</div><div class="meta">${esc(it.meta)}</div>
+              <div class="sets">${Array.from({ length: it.sets }, (_, s) =>
+                `<button class="dot ${chk[`${it.id}:${s}`] ? 'on' : ''}" data-k="${it.id}:${s}">${s + 1}</button>`).join('')}
+                ${it.w ? weightInput(it.id) : ''}</div>
+            </div></div>`;
+        } else {
+          const on = !!chk[`${it.id}:0`];
+          html += `<div class="item ${on ? 'done' : ''}">
+              <button class="chk ${on ? 'on' : ''}" data-k="${it.id}:0" aria-label="Виконано">${on ? '✓' : ''}</button>
+              <div class="body"><div class="name">${esc(it.name)}</div>
+              ${it.meta ? `<div class="meta">${esc(it.meta)}</div>` : ''}${planText}</div></div>`;
+        }
+      }
+    }
+    html += `</div>`;
+  }
+  $('#content').innerHTML = html;
+
+  const c = dayCount(person, day);
+  $('#bar').style.width = `${c.total ? (c.done / c.total) * 100 : 0}%`;
+  $('#alldone').classList.toggle('show', c.total > 0 && c.done === c.total);
+}
+
+function weightInput(id) {
+  const v = store.get(wKey(id), '');
+  return `<label class="wt">кг <input inputmode="decimal" data-w="${id}" value="${esc(v)}" placeholder="—"></label>`;
+}
+
+// ---------- Події ----------
+$('#who').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  person = b.dataset.p; store.set('person', person); render();
+});
+$('#days').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  day = b.dataset.d; render(); window.scrollTo({ top: 0 });
+});
+$('#content').addEventListener('click', e => {
+  const b = e.target.closest('[data-k]'); if (!b) return;
+  const chk = getChecks(person, day), k = b.dataset.k;
+  if (chk[k]) delete chk[k]; else chk[k] = 1;
+  store.set(ck(person, day), chk);
+  if (navigator.vibrate) navigator.vibrate(10);
+  render();
+});
+$('#content').addEventListener('change', e => {
+  const i = e.target.closest('[data-w]'); if (!i) return;
+  store.set(wKey(i.dataset.w), i.value.trim());
+});
+function shiftStart(deltaWeeks) {
+  const [y, m, d] = start.split('-').map(Number);
+  const s = new Date(y, m - 1, d - deltaWeeks * 7);
+  if (s > thisMonday) return; // тиждень програми не менше 1
+  start = ymd(s); store.set('startMonday', start); render();
+}
+$('#nextW').addEventListener('click', () => shiftStart(1));
+$('#prevW').addEventListener('click', () => shiftStart(-1));
+$('#reset').addEventListener('click', () => {
+  if (confirm('Скинути всі галочки цього дня?')) { store.del(ck(person, day)); render(); }
+});
+
+render();
+</script>
+</body>
+</html>
