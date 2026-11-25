@@ -62,6 +62,19 @@ h1{font-size:20px;margin:0}
 .how[open] summary::before{content:"▾ ";}
 .how ol{margin:6px 0 2px;padding-left:20px;font-size:14px;line-height:1.45}
 .how li{margin:4px 0}
+.pic{display:flex;gap:8px;margin-top:8px}
+.pic figure{margin:0;flex:1;max-width:150px;background:var(--bg);border-radius:10px;padding:4px 4px 2px}
+.pic svg{width:100%;height:auto;display:block}
+.pic figcaption{font-size:12px;color:var(--muted);text-align:center;padding:2px 0}
+.fg polyline{stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fg .hd{fill:var(--ink)}
+.fg.ghost{opacity:.18}
+.eq{stroke:var(--muted);stroke-width:2.5;fill:none;stroke-linecap:round}
+.cb{stroke:var(--muted);stroke-width:1.2;fill:none}
+.pad{stroke:var(--muted);stroke-width:7;stroke-linecap:round;opacity:.55}
+.bar{stroke:var(--muted);stroke-width:4;stroke-linecap:round}
+.wall{stroke:var(--muted);stroke-width:4}
+.ball{fill:var(--accent);opacity:.4}
 .note{font-size:14px;color:var(--muted);padding:4px 2px 12px}
 .note b{color:var(--ink)}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
@@ -366,6 +379,145 @@ const PLAN = {
   })(),
 };
 
+// ---------- Иллюстрации (схематичные фигурки, вид сбоку; y вниз, пол на 92) ----------
+const L = (a, b, c, d, cls = 'eq') => `<line class="${cls}" x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
+const C = (x, y, r, cls = 'eq') => `<circle class="${cls}" cx="${x}" cy="${y}" r="${r}"/>`;
+const RECT = (x, y, w, h) => `<rect class="eq" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/>`;
+const GROUND = L(4, 92, 116, 92);
+// fig(голова, плечо, таз, [[локоть, кисть]...], [[колено, стопа]...])
+const fig = (h, sh, hip, arms = [], legs = []) => ({ h, l: [
+  [...sh, ...hip], ...arms.map(a => [...sh, ...a.flat()]), ...legs.map(g => [...hip, ...g.flat()]) ] });
+const raw = (h, ...l) => ({ h, l });
+
+const rowEq = (sx, ha) => L(8, 80, 100, 80) + L(10, 80, 10, 92) + L(100, 80, 104, 92) + C(104, 66, 13) +
+  L(86, 66, 90, 84) + L(100, 54, 92, 36) + RECT(sx, 74, 14, 5) + L(ha[0], ha[1], 97, 63, 'cb');
+const cpEq = ha => L(16, 92, 100, 92) + L(24, 66, 50, 66) + L(36, 66, 36, 92) + L(22, 66, 18, 26) +
+  L(92, 92, 92, 10) + L(ha[0], ha[1], 92, 24) + L(ha[0], ha[1] - 7, ha[0], ha[1] + 7);
+const flyB = [[46, 28, 74, 28], [60, 20, 60, 62], [52, 62, 68, 62], [52, 62, 50, 74, 50, 90], [68, 62, 70, 74, 70, 90]];
+const flyEq = (lx, rx, t, b) => `<rect class="eq" x="50" y="26" width="20" height="36" rx="3"/>` + L(42, 64, 78, 64) +
+  L(60, 64, 60, 92) + L(lx, t, lx, b, 'pad') + L(rx, t, rx, b, 'pad');
+const pdEq = ha => L(20, 92, 110, 92) + L(102, 92, 102, 6) + L(102, 8, 90, 8) + C(90, 12, 4) +
+  L(90, 16, ha[0], ha[1], 'cb') + L(ha[0] - 5, ha[1], ha[0] + 5, ha[1]);
+const krEq = L(46, 2, 46, 96) + [12, 22, 32, 42, 52, 62, 72, 82].map(y => L(42, y, 50, y)).join('') + L(46, 8, 56, 8);
+const runEq = L(8, 86, 104, 86) + L(14, 86, 12, 92) + L(98, 86, 100, 92) + L(104, 86, 100, 30) + L(94, 26, 108, 32);
+const walkEq = L(8, 90, 104, 78) + L(104, 78, 100, 26) + L(94, 22, 108, 28);
+const pdnEq = ha => L(16, 92, 104, 92) + L(26, 70, 50, 70) + L(38, 70, 38, 92) + C(60, 56, 4) + L(60, 60, 60, 92) +
+  L(96, 92, 96, 4) + L(96, 4, 46, 4) + C(48, 7, 3) + L(48, 10, ha[0], ha[1], 'cb') + L(ha[0] - 8, ha[1], ha[0] + 8, ha[1]);
+const crEq = ha => GROUND + L(86, 76, 86, 92) + L(104, 92, 104, 60) + C(100, 86, 4) + RECT(18, 86, 26, 5) +
+  L(ha[0], ha[1], 97, 85, 'cb') + L(ha[0], ha[1] - 5, ha[0], ha[1] + 5);
+const cuEq = ha => L(20, 92, 110, 92) + L(104, 92, 104, 20) + C(98, 86, 4) + L(95, 84, ha[0], ha[1], 'cb') +
+  L(ha[0] - 1, ha[1] - 5, ha[0] + 1, ha[1] + 5);
+const lpEq = px => GROUND + L(20, 72, 44, 72) + L(20, 72, 12, 34) + L(32, 72, 32, 92) + L(32, 84, 104, 84) +
+  L(px, 42, px, 76, 'pad') + L(px, 76, px, 84);
+const leEq = ft => GROUND + L(24, 64, 24, 22) + L(24, 64, 54, 64) + L(40, 64, 40, 92) +
+  L(56, 62, ft[0] + 3, ft[1] + 2) + C(ft[0] + 3, ft[1] + 2, 4);
+const urB = [[46, 26, 74, 26], [60, 20, 60, 56], [52, 56, 68, 56], [52, 56, 50, 74, 50, 92], [68, 56, 70, 74, 70, 92]];
+const urEq = y => GROUND + L(60, y, 60, 88, 'cb') + C(60, 89, 3) + L(46, y, 74, y, 'bar');
+const bkEq = GROUND + L(36, 92, 52, 82) + L(84, 92, 70, 84) + L(52, 82, 46, 48) + L(36, 45, 50, 45) +
+  L(70, 82, 76, 36) + L(72, 34, 82, 34) + C(70, 80, 9) + C(58, 74, 10, 'cb');
+const elEq = ha => GROUND + L(20, 90, 96, 90) + L(92, 92, 88, 20) + L(ha[0], ha[1], 84, 74);
+const wsEq = by => GROUND + L(12, 2, 12, 92, 'wall') + C(22, by, 8, 'ball');
+
+const bikeF = [
+  { eq: bkEq, p: fig([60, 9], [56, 18], [44, 42], [[[66, 26], [76, 34]]], [[[62, 56], [58, 84]]]) },
+  { eq: bkEq, p: fig([60, 9], [56, 18], [44, 42], [[[66, 26], [76, 34]]], [[[64, 48], [58, 64]]]) } ];
+const ellF = [
+  { eq: elEq([74, 26]), p: fig([56, 10], [54, 20], [52, 50], [[[64, 32], [74, 26]], [[48, 34], [56, 42]]],
+      [[[58, 68], [66, 86]], [[46, 68], [38, 88]]]) },
+  { eq: elEq([64, 30]), p: fig([56, 10], [54, 20], [52, 50], [[[58, 34], [64, 30]]],
+      [[[56, 68], [58, 86]], [[50, 68], [46, 86]]]) } ];
+
+const ILL = {
+  row: { frames: [
+    { eq: rowEq(47, [88, 56]), p: fig([67, 37], [64, 46], [54, 73], [[[76, 50], [88, 56]]], [[[70, 52], [86, 76]]]) },
+    { eq: rowEq(25, [38, 58]), p: fig([24, 37], [27, 46], [32, 73], [[[18, 58], [38, 58]]], [[[58, 68], [86, 76]]]) } ] },
+  chestPress: { frames: [
+    { eq: cpEq([40, 40]), p: fig([29, 20], [28, 31], [34, 62], [[[22, 46], [40, 40]]], [[[58, 62], [60, 90]]]) },
+    { eq: cpEq([62, 36]), p: fig([29, 20], [28, 31], [34, 62], [[[44, 34], [62, 36]]], [[[58, 62], [60, 90]]]) } ] },
+  fly: { frames: [
+    { eq: flyEq(26, 94, 10, 30), p: raw([60, 12], ...flyB, [46, 28, 26, 30, 26, 10], [74, 28, 94, 30, 94, 10]) },
+    { eq: flyEq(53, 67, 22, 38), p: raw([60, 12], ...flyB, [46, 28, 53, 38, 53, 22], [74, 28, 67, 38, 67, 22]) } ],
+    labels: ['Старт (вид спереди)', 'Финиш'] },
+  pushup: { frames: [
+    { eq: GROUND, p: raw([97, 54], [20, 88, 54, 74, 88, 60], [88, 60, 88, 74, 88, 88]) },
+    { eq: GROUND, p: raw([97, 72], [20, 88, 54, 82, 88, 76], [88, 76, 76, 74, 88, 88]) } ],
+    labels: ['Вверху', 'Внизу'] },
+  pushdown: { frames: [
+    { eq: pdEq([74, 32]), p: fig([62, 14], [58, 24], [54, 54], [[[57, 42], [74, 32]]], [[[54, 73], [54, 92]], [[58, 73], [62, 92]]]) },
+    { eq: pdEq([62, 60]), p: fig([62, 14], [58, 24], [54, 54], [[[57, 42], [62, 60]]], [[[54, 73], [54, 92]], [[58, 73], [62, 92]]]) } ] },
+  kneeRaise: { frames: [
+    { eq: krEq, p: fig([60, 21], [52, 28], [52, 58], [[[52, 18], [54, 8]]], [[[52, 76], [52, 92]]]) },
+    { eq: krEq, p: fig([60, 21], [52, 28], [52, 58], [[[52, 18], [54, 8]]], [[[72, 48], [74, 68]]]) } ] },
+  run: { ghost: false, labels: ['Толчок', 'Приземление под себя'], frames: [
+    { eq: runEq, p: fig([63, 12], [60, 22], [56, 50], [[[68, 32], [76, 24]], [[50, 34], [44, 42]]],
+        [[[68, 62], [64, 84]], [[46, 64], [34, 62]]]) },
+    { eq: runEq, p: fig([62, 12], [59, 22], [56, 50], [[[58, 36], [64, 44]], [[55, 36], [50, 44]]],
+        [[[58, 68], [56, 84]], [[54, 66], [46, 76]]]) } ] },
+  walk: { ghost: false, labels: ['Шаг', 'Руки работают'], frames: [
+    { eq: walkEq, p: fig([60, 14], [58, 24], [56, 52], [[[62, 38], [66, 50]], [[54, 38], [50, 50]]],
+        [[[62, 68], [68, 82]], [[50, 68], [42, 86]]]) },
+    { eq: walkEq, p: fig([60, 14], [58, 24], [56, 52], [[[58, 38], [59, 52]]],
+        [[[58, 70], [58, 84]], [[54, 68], [50, 82]]]) } ] },
+  pulldown: { frames: [
+    { eq: pdnEq([46, 8]), p: fig([34, 28], [34, 38], [40, 66], [[[40, 22], [46, 8]]], [[[60, 64], [62, 90]]]) },
+    { eq: pdnEq([44, 40]), p: fig([34, 28], [34, 38], [40, 66], [[[30, 54], [44, 40]]], [[[60, 64], [62, 90]]]) } ] },
+  cableRow: { frames: [
+    { eq: crEq([68, 68]), p: fig([36, 46], [34, 56], [32, 84], [[[50, 62], [68, 68]]], [[[58, 72], [84, 86]]]) },
+    { eq: crEq([42, 72]), p: fig([36, 46], [34, 56], [32, 84], [[[22, 66], [42, 72]]], [[[58, 72], [84, 86]]]) } ] },
+  curl: { frames: [
+    { eq: cuEq([62, 60]), p: fig([60, 14], [58, 24], [56, 54], [[[58, 42], [62, 60]]], [[[56, 73], [56, 92]], [[60, 73], [64, 92]]]) },
+    { eq: cuEq([70, 28]), p: fig([60, 14], [58, 24], [56, 54], [[[58, 42], [70, 28]]], [[[56, 73], [56, 92]], [[60, 73], [64, 92]]]) } ] },
+  superman: { frames: [
+    { eq: GROUND, p: raw([90, 81], [12, 89, 32, 89, 52, 88, 80, 88], [80, 88, 94, 89, 110, 89]) },
+    { eq: GROUND, p: raw([90, 70], [12, 80, 32, 85, 52, 88, 80, 80], [80, 80, 94, 75, 110, 70]) } ] },
+  plank: { ghost: false, labels: ['✓ Правильно', '✗ Таз провис'], frames: [
+    { eq: GROUND, p: raw([98, 60], [14, 89, 52, 77, 88, 66], [88, 66, 88, 88, 106, 88]) },
+    { eq: GROUND, p: raw([98, 62], [14, 89, 52, 86, 88, 68], [88, 68, 88, 88, 106, 88]) } ] },
+  legPress: { frames: [
+    { eq: lpEq(68), p: fig([15, 30], [18, 40], [30, 68], [[[26, 56], [40, 70]]], [[[48, 44], [64, 62]]]) },
+    { eq: lpEq(92), p: fig([15, 30], [18, 40], [30, 68], [[[26, 56], [40, 70]]], [[[59, 66], [88, 60]]]) } ] },
+  legExt: { frames: [
+    { eq: leEq([56, 86]), p: fig([32, 18], [30, 28], [32, 60], [[[34, 44], [44, 60]]], [[[56, 62], [56, 86]]]) },
+    { eq: leEq([82, 56]), p: fig([32, 18], [30, 28], [32, 60], [[[34, 44], [44, 60]]], [[[56, 62], [82, 56]]]) } ] },
+  uprightRow: { labels: ['Старт (вид спереди)', 'Финиш'], frames: [
+    { eq: urEq(58), p: raw([60, 12], ...urB, [46, 26, 44, 44, 52, 58], [74, 26, 76, 44, 68, 58]) },
+    { eq: urEq(36), p: raw([60, 12], ...urB, [46, 26, 32, 24, 52, 36], [74, 26, 88, 24, 68, 36]) } ] },
+  stretch: { ghost: false, labels: ['Бедро спереди', 'Бедро сзади'], frames: [
+    { eq: GROUND, p: fig([60, 12], [60, 22], [60, 52], [[[54, 38], [46, 54]], [[68, 36], [72, 50]]],
+        [[[60, 72], [60, 92]], [[58, 72], [46, 56]]]) },
+    { eq: GROUND, p: raw([59, 59], [84, 89, 57, 89, 30, 88], [30, 88, 52, 66], [52, 66, 66, 74, 82, 84]) } ] },
+  bike: { labels: ['Педаль внизу', 'Педаль вверху'], frames: bikeF },
+  elliptical: { ghost: false, labels: ['Шаг 1', 'Шаг 2'], frames: ellF },
+  mix: { ghost: false, labels: ['Велотренажёр', 'Эллипс'], frames: [bikeF[0], ellF[0]] },
+  wallSquat: { frames: [
+    { eq: wsEq(44), p: fig([30, 14], [30, 24], [30, 54], [[[44, 26], [58, 28]]], [[[40, 72], [46, 92]]]) },
+    { eq: wsEq(62), p: fig([30, 36], [30, 46], [30, 72], [[[44, 48], [58, 50]]], [[[54, 72], [54, 92]]]) } ],
+    labels: ['Старт', 'Присед'] },
+};
+
+const PIC = {
+  m_tue_wu: 'row', m_sat_wu: 'row', m_thu_row: 'row',
+  m_chest_press: 'chestPress', m_cg_press: 'chestPress', h_press: 'chestPress',
+  m_fly: 'fly', m_pushup: 'pushup', m_tri: 'pushdown', m_knees: 'kneeRaise',
+  m_tue_run: 'run', m_sat_run: 'run', m_thu_wu: 'walk',
+  m_pulldown: 'pulldown', m_rev_pd: 'pulldown', h_pulldown: 'pulldown',
+  m_row: 'cableRow', m_bi: 'curl', m_superman: 'superman', m_plank: 'plank', h_plank: 'plank',
+  m_legpress: 'legPress', h_legpress: 'legPress', m_legext: 'legExt', h_legext: 'legExt',
+  m_upright: 'uprightRow', h_squat: 'wallSquat',
+  h_tue_cardio: 'bike', h_thu_cardio: 'bike', h_sat_cardio: 'mix',
+};
+const picKey = id => PIC[id] || (/_cd$/.test(id) ? 'stretch' : /^h_.*_wu$/.test(id) ? 'bike' : null);
+
+const poseSvg = (p, cls) => `<g class="${cls}">${p.l.map(pts => `<polyline points="${pts.join(' ')}"/>`).join('')}` +
+  `<circle class="hd" cx="${p.h[0]}" cy="${p.h[1]}" r="6.5"/></g>`;
+function picHtml(id) {
+  const ill = ILL[picKey(id)]; if (!ill) return '';
+  const labels = ill.labels || ['Старт', 'Финиш'];
+  return `<div class="pic">${ill.frames.map((f, i) => `<figure><svg viewBox="0 0 120 100" aria-hidden="true">${f.eq}` +
+    `${i > 0 && ill.ghost !== false ? poseSvg(ill.frames[0].p, 'fg ghost') : ''}${poseSvg(f.p, 'fg')}</svg>` +
+    `<figcaption>${esc(labels[i])}</figcaption></figure>`).join('')}</div>`;
+}
+
 // ---------- Хранилище ----------
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
@@ -457,6 +609,7 @@ function render() {
       html += b.items.map(it => `
         <div class="item"><div class="body">
           <div class="name">${esc(it.name)}</div><div class="meta">${esc(it.meta)}</div>
+          ${picHtml(it.id)}
           ${it.w ? `<div class="sets">${weightInput(it.id)}</div>` : ''}
           ${howBlock(it)}
         </div></div>`).join('');
@@ -472,6 +625,7 @@ function render() {
           const all = Array.from({ length: it.sets }, (_, s) => chk[`${it.id}:${s}`]).every(Boolean);
           html += `<div class="item ${all ? 'done' : ''}"><div class="body">
               <div class="name">${esc(it.name)}</div><div class="meta">${esc(it.meta)}</div>
+              ${picHtml(it.id)}
               <div class="sets">${Array.from({ length: it.sets }, (_, s) =>
                 `<button class="dot ${chk[`${it.id}:${s}`] ? 'on' : ''}" data-k="${it.id}:${s}">${s + 1}</button>`).join('')}
                 ${it.w ? weightInput(it.id) : ''}</div>
@@ -482,7 +636,7 @@ function render() {
           html += `<div class="item ${on ? 'done' : ''}">
               <button class="chk ${on ? 'on' : ''}" data-k="${it.id}:0" aria-label="Выполнено">${on ? '✓' : ''}</button>
               <div class="body"><div class="name">${esc(it.name)}</div>
-              ${it.meta ? `<div class="meta">${esc(it.meta)}</div>` : ''}${planText}${howBlock(it)}</div></div>`;
+              ${it.meta ? `<div class="meta">${esc(it.meta)}</div>` : ''}${picHtml(it.id)}${planText}${howBlock(it)}</div></div>`;
         }
       }
     }
